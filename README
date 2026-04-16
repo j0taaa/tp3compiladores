@@ -1,0 +1,86 @@
+README file for Programming Assignment 3 (C++ edition)
+======================================================
+
+Write-up for PA3
+----------------
+
+1. Decisoes de projeto
+
+O parser foi implementado em C++ usando Bison e construtores da AST oficial de
+Cool. A gramatica cobre:
+
+- programa com uma ou mais classes;
+- classes com e sem `inherits`;
+- atributos com e sem inicializacao;
+- metodos com lista de formais opcional;
+- todas as expressoes da linguagem Cool descritas no enunciado.
+
+As acoes semanticas constroem diretamente a AST oficial com os construtores
+`program`, `class_`, `method`, `attr`, `formal`, `branch`, `assign`,
+`dispatch`, `static_dispatch`, `cond`, `loop`, `block`, `let`, `typcase`,
+`new_`, `isvoid`, `plus`, `sub`, `mul`, `divide`, `neg`, `lt`, `leq`, `eq`,
+`comp`, `int_const`, `string_const`, `bool_const`, `object` e `no_expr`.
+
+Para reduzir ambiguidades, as expressoes usam declaracoes de precedencia
+somente na parte de expressoes, como pedido pelo trabalho. A parte restante da
+gramatica foi mantida estrutural, com nao-terminais auxiliares para listas de
+formais, argumentos, blocos, casos e bindings de `let`.
+
+2. Recuperacao de erros
+
+O parser usa o pseudo-nao-terminal `error` nos pontos exigidos pelo enunciado:
+
+- definicao de classe: `class_list` ignora uma classe malformada ate o `;`,
+  permitindo reiniciar na proxima classe correta;
+- definicao de feature: `feature_list` descarta uma feature invalida ate o `;`
+  e continua na proxima feature da classe;
+- bindings de `let`: `let_expression` ignora um binding invalido e continua no
+  proximo binding separado por `,`, ou cai no corpo quando encontra `in`;
+- bloco `{ ... }`: `block_expression_list` tenta continuar apos `;` e
+  `block_body` permite sincronizar no `}` para que o parser siga depois do
+  fechamento do bloco.
+
+3. Por que acredito que o codigo esta correto
+
+- Toda construcao sintatica legal de Cool presente no manual aparece em
+  `good.cl`.
+- As acoes semanticas criam a AST com os tipos esperados pelo pacote oficial.
+- Os pontos de recuperacao de erro pedidos no enunciado foram implementados e
+  exercitados em `bad.cl`.
+- O parser e o lexer foram compilados localmente e executados em entradas boas
+  e ruins para confirmar geracao de AST em casos validos e mensagens de erro
+  com continuidade de analise em casos invalidos.
+
+4. Casos de teste
+
+`good.cl` cobre:
+
+- classes com e sem heranca;
+- atributos simples e com inicializacao;
+- metodos com zero, um e varios parametros;
+- atribuicao;
+- despacho dinamico, despacho estatico e despacho implicito em `self`;
+- `if/then/else/fi`;
+- `while/loop/pool`;
+- bloco;
+- `let` com multiplos bindings;
+- `case/of/esac`;
+- `new`, `isvoid`, `not`, `~`;
+- operacoes aritmeticas e relacionais;
+- parenteses, identificadores e constantes `Int`, `String` e `Bool`.
+
+`bad.cl` cobre:
+
+- erro em cabecalho de classe seguido de classe correta;
+- erro em atributo seguido de feature correta;
+- erro em metodo seguido de feature correta;
+- erro em binding de `let` seguido de outro binding correto;
+- erro em expressao dentro de bloco, com continuidade apos `}`.
+
+5. Observacao sobre o scanner
+
+O enunciado pede validacao com o scanner oficial. Nesta maquina macOS/ARM o
+binario `lexer` distribuido no pacote historico do curso e um executavel
+Linux/i386 e nao roda nativamente. Para manter o mesmo fluxo do trabalho
+(`lexer | parser`), o projeto foi preparado para compilar localmente um
+executavel `lexer` compativel com a interface oficial de stream de tokens.
