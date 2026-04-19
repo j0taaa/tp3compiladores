@@ -44,6 +44,12 @@ typedef list_node<Case> Cases_class;
 typedef Cases_class *Cases;
 /* A Bison parser, made by GNU Bison 2.3.  */
 
+#ifndef YYDEBUG
+#define YYDEBUG 1
+#endif
+
+extern int cool_yydebug;
+
 /* Skeleton interface for Bison's Yacc-like parsers in C
 
    Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
@@ -78,6 +84,11 @@ typedef Cases_class *Cases;
    version 2.2 of Bison.  */
 
 /* Tokens.  */
+#define YYEMPTY -2
+#define YYEOF 0
+#define YYerror 256
+#define YYUNDEF 284
+
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
    /* Put the tokens into the symbol table, so that GDB and other debuggers
@@ -108,8 +119,7 @@ typedef Cases_class *Cases;
      ASSIGN = 280,
      NOT = 281,
      LE = 282,
-     ERROR = 283,
-     LET_STMT = 285
+     ERROR = 283
    };
 #endif
 /* Tokens.  */
@@ -139,7 +149,6 @@ typedef Cases_class *Cases;
 #define NOT 281
 #define LE 282
 #define ERROR 283
-#define LET_STMT 285
 
 
 

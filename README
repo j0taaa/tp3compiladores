@@ -6,14 +6,17 @@ Write-up for PA3
 
 1. Decisoes de projeto
 
-O parser foi implementado em C++ usando Bison e construtores da AST oficial de
-Cool. A gramatica cobre:
+O parser foi implementado em C++ com Bison e com as classes/construtores da AST
+oficial de Cool. A gramatica em `cool.y` cobre:
 
-- programa com uma ou mais classes;
+- programa formado por uma ou mais classes;
 - classes com e sem `inherits`;
+- lista vazia ou nao vazia de features;
 - atributos com e sem inicializacao;
-- metodos com lista de formais opcional;
-- todas as expressoes da linguagem Cool descritas no enunciado.
+- metodos com zero, um ou varios formais;
+- todas as expressoes exigidas pelo enunciado (`assign`, dispatch dinamico e
+  estatico, `if`, `while`, bloco, `let`, `case`, `new`, `isvoid`, operadores
+  aritmeticos, relacionais e unarios, parenteses, constantes e identificadores).
 
 As acoes semanticas constroem diretamente a AST oficial com os construtores
 `program`, `class_`, `method`, `attr`, `formal`, `branch`, `assign`,
@@ -21,66 +24,83 @@ As acoes semanticas constroem diretamente a AST oficial com os construtores
 `new_`, `isvoid`, `plus`, `sub`, `mul`, `divide`, `neg`, `lt`, `leq`, `eq`,
 `comp`, `int_const`, `string_const`, `bool_const`, `object` e `no_expr`.
 
-Para reduzir ambiguidades, as expressoes usam declaracoes de precedencia
-somente na parte de expressoes, como pedido pelo trabalho. A parte restante da
-gramatica foi mantida estrutural, com nao-terminais auxiliares para listas de
-formais, argumentos, blocos, casos e bindings de `let`.
+As declaracoes de precedencia foram usadas somente na parte de expressoes, como
+pedido na especificacao. O conflito da construcao `let` foi resolvido com
+precedencia associada a producoes (`%prec ASSIGN`), seguindo a orientacao do
+enunciado. O restante da gramatica foi deixado estrutural, com nao-terminais
+auxiliares para listas de formais, argumentos, expressoes de bloco, casos e
+bindings de `let`.
 
 2. Recuperacao de erros
 
-O parser usa o pseudo-nao-terminal `error` nos pontos exigidos pelo enunciado:
+O parser usa o pseudo-nao-terminal `error` nos pontos minimos pedidos no
+trabalho:
 
-- definicao de classe: `class_list` ignora uma classe malformada ate o `;`,
-  permitindo reiniciar na proxima classe correta;
-- definicao de feature: `feature_list` descarta uma feature invalida ate o `;`
-  e continua na proxima feature da classe;
-- bindings de `let`: `let_expression` ignora um binding invalido e continua no
-  proximo binding separado por `,`, ou cai no corpo quando encontra `in`;
-- bloco `{ ... }`: `block_expression_list` tenta continuar apos `;` e
-  `block_body` permite sincronizar no `}` para que o parser siga depois do
-  fechamento do bloco.
+- definicao de classe: `class_list` ignora uma classe malformada ate `;` e
+  reinicia na proxima classe;
+- definicao de feature: `feature_list` descarta a feature invalida ate `;` e
+  continua na proxima feature da classe;
+- bindings de `let`: `let_expression` descarta um binding invalido ate `,` ou
+  `in`, permitindo continuar no proximo binding ou no corpo do `let`;
+- expressoes em bloco: `block_expression_list` recupera em `;` e `block_body`
+  sincroniza no `}` para o parser continuar apos o fechamento do bloco.
 
-3. Por que acredito que o codigo esta correto
+3. Corretude e robustez
 
-- Toda construcao sintatica legal de Cool presente no manual aparece em
-  `good.cl`.
-- As acoes semanticas criam a AST com os tipos esperados pelo pacote oficial.
-- Os pontos de recuperacao de erro pedidos no enunciado foram implementados e
-  exercitados em `bad.cl`.
-- O parser e o lexer foram compilados localmente e executados em entradas boas
-  e ruins para confirmar geracao de AST em casos validos e mensagens de erro
-  com continuidade de analise em casos invalidos.
+Eu considero a implementacao correta e razoavelmente robusta pelos seguintes
+motivos:
+
+- a raiz da AST produzida em casos validos e `program`, exatamente como pedido;
+- as acoes semanticas usam os tipos esperados pelo pacote oficial de arvores;
+- os pontos obrigatorios de recuperacao de erro foram implementados em `cool.y`
+  e exercitados em `bad.cl`;
+- o parser consome o mesmo formato de stream de tokens usado pela ferramenta
+  oficial (`lexer | parser`), porque `parser-phase.cc` le da entrada padrao e
+  `tokens-lex.cc` interpreta o formato textual de tokens do suporte de Cool;
+- o script `myparser` foi mantido no formato pedido pelo enunciado e agora
+  repassa `-p` ao parser, como descrito na especificacao para depuracao.
+- o `Makefile` possui os alvos `clean` e `submit-clean`, em linha com o fluxo
+  de entrega descrito na especificacao.
 
 4. Casos de teste
 
-`good.cl` cobre:
+`good.cl` cobre os principais casos sintaticos legais pedidos no trabalho:
 
-- classes com e sem heranca;
-- atributos simples e com inicializacao;
+- classe sem heranca, com heranca e classe sem features;
+- atributos sem inicializacao e com inicializacao;
 - metodos com zero, um e varios parametros;
 - atribuicao;
-- despacho dinamico, despacho estatico e despacho implicito em `self`;
+- despacho implicito em `self`, despacho dinamico e despacho estatico;
 - `if/then/else/fi`;
 - `while/loop/pool`;
 - bloco;
 - `let` com multiplos bindings;
 - `case/of/esac`;
-- `new`, `isvoid`, `not`, `~`;
+- `new` com tipo concreto e `new SELF_TYPE`;
+- `isvoid`, `not`, `~`;
 - operacoes aritmeticas e relacionais;
 - parenteses, identificadores e constantes `Int`, `String` e `Bool`.
 
-`bad.cl` cobre:
+`bad.cl` concentra varios erros recuperaveis em um unico arquivo:
 
 - erro em cabecalho de classe seguido de classe correta;
 - erro em atributo seguido de feature correta;
 - erro em metodo seguido de feature correta;
-- erro em binding de `let` seguido de outro binding correto;
-- erro em expressao dentro de bloco, com continuidade apos `}`.
+- erro em binding de `let` seguido de bindings corretos;
+- erro em expressao dentro de bloco, com continuidade apos `}`;
+- erro em expressao dentro de bloco seguido de outra expressao valida no mesmo
+  bloco para exercitar a recuperacao por `;`.
 
 5. Observacao sobre o scanner
 
-O enunciado pede validacao com o scanner oficial. Nesta maquina macOS/ARM o
-binario `lexer` distribuido no pacote historico do curso e um executavel
-Linux/i386 e nao roda nativamente. Para manter o mesmo fluxo do trabalho
-(`lexer | parser`), o projeto foi preparado para compilar localmente um
-executavel `lexer` compativel com a interface oficial de stream de tokens.
+O enunciado pede validacao com o scanner oficial. Este repositorio foi montado
+para preservar exatamente o fluxo `lexer | parser`: o parser le um stream de
+tokens do stdin e o arquivo `myparser` encadeia os dois programas. Assim, se um
+executavel oficial chamado `lexer` estiver disponivel no ambiente, ele pode ser
+substituido sem alterar o parser.
+
+Nesta copia do projeto nao ha evidencia automatizada de que o scanner oficial
+foi executado com sucesso neste ambiente especifico. Por isso, este README nao
+afirma essa validacao como fato; ele afirma apenas a compatibilidade estrutural
+do parser com o formato oficial de tokens e descreve como essa validacao deve
+ser feita quando o binario oficial estiver disponivel.
