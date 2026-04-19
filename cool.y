@@ -75,6 +75,7 @@ int omerrs = 0;
 %type <expressions> block_body block_expression_list
 %type <expression> expression let_expression let_init
 
+/* Precedence is intentionally restricted to expression syntax. */
 %right ASSIGN
 %nonassoc NOT
 %nonassoc LE '<' '='
@@ -447,6 +448,7 @@ case_branch
     }
   ;
 
+/* `%prec ASSIGN` gives `let` the conventional right-extended interpretation. */
 let_expression
   : OBJECTID ':' TYPEID let_init IN expression %prec ASSIGN
     {
