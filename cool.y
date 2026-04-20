@@ -93,6 +93,7 @@ program
     {
       @$ = @1;
       SET_NODELOC(@1);
+      /* Build the final AST root after the full class list is available. */
       ast_root = program($1);
       parse_results = $1;
     }
@@ -111,11 +112,13 @@ class_list
     }
   | error ';'
     {
+      /* Skip one malformed class and resume parsing after its terminator. */
       $$ = nil_Classes();
       yyerrok;
     }
   | class_list error ';'
     {
+      /* Preserve the classes parsed so far while recovering from the bad one. */
       $$ = $1;
       yyerrok;
     }
@@ -149,6 +152,7 @@ feature_list
     }
   | feature_list error ';'
     {
+      /* Keep the class body and continue after one invalid feature. */
       $$ = $1;
       yyerrok;
     }
@@ -232,6 +236,7 @@ expression
       Expression self_expr;
       @$ = @1;
       SET_NODELOC(@1);
+      /* A bare call such as f(x) is parsed as dispatch on self. */
       self_expr = object(idtable.add_string("self"));
       SET_NODELOC(@1);
       $$ = dispatch(self_expr, $1, $3);
@@ -393,11 +398,13 @@ block_body
     }
   | block_expression_list error
     {
+      /* Let the parser recover before the closing brace of the block. */
       $$ = $1;
       yyerrok;
     }
   | error
     {
+      /* A fully malformed block still becomes an empty expression list. */
       $$ = nil_Expressions();
       yyerrok;
     }
@@ -416,11 +423,13 @@ block_expression_list
     }
   | error ';'
     {
+      /* Drop one malformed block entry and continue after the semicolon. */
       $$ = nil_Expressions();
       yyerrok;
     }
   | block_expression_list error ';'
     {
+      /* Keep the valid prefix of the block while skipping the bad entry. */
       $$ = $1;
       yyerrok;
     }
@@ -460,15 +469,18 @@ let_expression
     {
       @$ = @1;
       SET_NODELOC(@1);
+      /* Nested let nodes preserve the source order of the bindings. */
       $$ = let($1, $3, $4, $6);
     }
   | error ',' let_expression
     {
+      /* Skip one malformed binding and continue at the next comma. */
       $$ = $3;
       yyerrok;
     }
   | error IN expression %prec ASSIGN
     {
+      /* If recovery reaches 'in', continue by parsing only the let body. */
       $$ = $3;
       yyerrok;
     }
@@ -482,6 +494,7 @@ let_init
   | ASSIGN expression
     {
       @$ = @1;
+      /* The initializer stores only the assigned expression subtree. */
       $$ = $2;
     }
   ;
