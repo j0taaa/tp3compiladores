@@ -19,7 +19,8 @@ class RecoverFeatures {
   broken_let() : Int {
     let a : Int <- 1,
         b : <- 2,
-        c : Int <- 3
+        c : Int <- 3,
+        d : String <- "ok"
     in c
   };
 
@@ -27,6 +28,14 @@ class RecoverFeatures {
     {
       1;
       x <-
+    }
+  };
+
+  broken_block_chain() : Int {
+    {
+      1;
+      y <- ;
+      3;
     }
   };
 

@@ -1,3 +1,6 @@
+class Empty {
+};
+
 class Helper {
   value : Int <- 7;
   text : String <- "cool";
@@ -44,6 +47,7 @@ class Main inherits Base {
         h : Helper => h.id(5);
         b : Base => b.choose(4);
       esac;
+      new SELF_TYPE;
       isvoid new Helper;
       ~1;
       not false;
