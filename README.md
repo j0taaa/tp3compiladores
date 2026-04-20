@@ -1,26 +1,24 @@
 README file for Programming Assignment 3 (C++ edition)
 ======================================================
 
-Write-up for PA3
-----------------
 
 Este projeto implementa a etapa de análise sintática da linguagem Cool em C++,
 usando Bison e o pacote padrão de árvores da linguagem. A implementação
 constrói a árvore sintática abstrata diretamente durante o parsing e preserva o
-fluxo tradicional em que um analisador léxico produz uma sequência de tokens
-consumida pelo parser. A organização do repositório segue a estrutura típica do
-TP3, com a gramática em `cool.y`, o scanner em `cool.flex`, os casos principais
-de teste em `good.cl` e `bad.cl`, e o script `myparser` mantendo a execução no
-formato `lexer | parser`.
+modelo clássico de integração em que um analisador léxico produz uma sequência
+de tokens consumida pelo parser. A organização do repositório acompanha a
+estrutura esperada para o trabalho, com a gramática em `cool.y`, o scanner em
+`cool.flex`, os casos principais de teste em `good.cl` e `bad.cl`, e o script
+`myparser` mantendo a execução no formato `lexer | parser`.
 
 O parser constrói a AST oficial de Cool, com `program` como raiz para entradas
 válidas. A gramática cobre programas com uma ou mais classes, classes com e sem
 herança, listas vazias ou não vazias de features, atributos com e sem
 inicialização, métodos com diferentes quantidades de parâmetros formais e as
-formas de expressão esperadas na linguagem, incluindo atribuição, despacho
-dinâmico e estático, despacho implícito em `self`, condicionais, laços,
+formas de expressão centrais da linguagem, incluindo atribuição, dispatch
+dinâmico e estático, dispatch implícito em `self`, condicionais, laços,
 blocos, `let`, `case`, criação de objetos, operadores unários, operadores
-aritméticos, operadores relacionais, expressões entre parênteses,
+aritméticos, operadores relacionais, expressões parentetizadas,
 identificadores e constantes.
 
 As ações semânticas em `cool.y` criam diretamente os nós padrão da árvore por
@@ -31,7 +29,7 @@ meio dos construtores oficiais, entre eles `program`, `class_`, `method`,
 `bool_const`, `object` e `no_expr`. Fora da camada de expressões, a gramática
 foi mantida estrutural, com não-terminais dedicados para listas de classes,
 features, formais, argumentos, expressões de bloco e ramos de `case`. Isso
-mantém a definição legível e evita resolver problemas não relacionados a
+mantém a definição legível e evita resolver questões não relacionadas a
 expressões por meio de precedência.
 
 A precedência de operadores foi mantida estritamente no domínio das expressões.
@@ -39,14 +37,14 @@ A gramática declara precedência apenas para atribuição, operadores unários,
 operadores relacionais, operadores aritméticos e operadores de dispatch. A
 única sobrescrita de precedência em nível de produção é `%prec ASSIGN`, usada
 na produção de `let` para dar à construção a interpretação convencional
-estendida para a direita. Desse modo, a precedência permanece como um recurso
+estendida para a direita. Com isso, a precedência permanece como um recurso
 local para ambiguidades reais de expressões, em vez de um mecanismo genérico
-para suprimir conflitos da gramática. Na validação local, o arquivo
+para suprimir conflitos estruturais da gramática. Na validação local, o arquivo
 `cool.output` gerado pelo Bison não apresentou conflitos residuais do tipo
 `shift/reduce` ou `reduce/reduce`.
 
 O scanner utilizado nas execuções de validação foi o executável local `lexer`,
-gerado a partir de `cool.flex`. Esse scanner lê arquivos fonte de Cool e emite
+gerado a partir de `cool.flex`. Esse scanner lê arquivos-fonte de Cool e emite
 o fluxo textual de tokens consumido pelo parser. Esse comportamento aparece em
 `lextest.cc`, que imprime o cabeçalho `#name "arquivo"` e depois escreve os
 tokens por meio de `dump_cool_token(...)`. O driver do parser, em
@@ -66,27 +64,27 @@ corpo do `let`. Em blocos, `block_expression_list` recupera em `;`, enquanto
 `block_body` permite sincronização em `}`. A rotina padrão de erro do parser
 foi preservada, e as ações semânticas não fazem chamadas manuais a ela.
 
-Os casos principais de validação estão concentrados em `good.cl` e `bad.cl`.
-`good.cl` exercita as construções válidas centrais da gramática, incluindo
-herança, conjuntos vazios e não vazios de features, atributos com e sem
-inicialização, métodos com diferentes aridades, atribuição, os três tipos de
-dispatch, `if`, `while`, blocos, `let` com múltiplos bindings, `case`, `new`,
-`new SELF_TYPE`, `isvoid`, `not`, `~`, expressões aritméticas, expressões
-relacionais e as formas básicas de constantes. `bad.cl` concentra vários erros
-sintáticos recuperáveis em um único arquivo, cobrindo cabeçalhos de classe
-malformados, atributos malformados, métodos malformados, bindings de `let`
-inválidos e expressões de bloco inválidas, inclusive em cenários em que a
-análise continua após um ponto de recuperação.
+Os principais casos de validação estão concentrados em `good.cl` e `bad.cl`.
+O arquivo `good.cl` exercita as construções válidas centrais da gramática,
+incluindo herança, conjuntos vazios e não vazios de features, atributos com e
+sem inicialização, métodos com diferentes aridades, atribuição, os três tipos
+de dispatch, `if`, `while`, blocos, `let` com múltiplos bindings, `case`,
+`new`, `new SELF_TYPE`, `isvoid`, `not`, `~`, expressões aritméticas,
+expressões relacionais e as formas básicas de constantes. O arquivo `bad.cl`
+concentra vários erros sintáticos recuperáveis em uma única entrada, cobrindo
+cabeçalhos de classe malformados, atributos malformados, métodos malformados,
+bindings inválidos de `let` e expressões inválidas em blocos, inclusive em
+cenários em que a análise continua após um ponto de recuperação.
 
-Dois arquivos adicionais foram incluídos como apoio didático para inspecionar
-precedência e formato de árvore. O arquivo
+Dois arquivos adicionais foram incluídos como apoio didático para inspeção de
+precedência e formato da árvore. O arquivo
 `expr_precedence_mul_parens_let_demo.cl` contrasta expressões como
 `1 + 2 * 3`, `(1 + 2) * 3` e um corpo de `let` que combina soma e
 multiplicação. O arquivo
 `expr_precedence_dispatch_unary_assign_demo.cl` destaca atribuição, negação
-unária, `not`, `isvoid`, dispatch estático e dispatch dinâmico. Eles não
-substituem os testes principais, mas são úteis para leitura manual da AST e
-para verificação pontual de precedência.
+unária, `not`, `isvoid`, dispatch estático e dispatch dinâmico. Esses arquivos
+não substituem os testes principais, mas são úteis para leitura manual da AST e
+para verificação pontual da precedência.
 
 A validação foi feita por compilação e execução diretas. O parser e o lexer
 foram compilados com sucesso, entradas válidas produziram AST, entradas
@@ -112,11 +110,11 @@ No Windows, o runtime do MinGW/WinLibs pode precisar estar presente no `PATH`
 antes da execução dos binários gerados.
 
 Do ponto de vista de qualidade de software, a implementação é consistente com o
-escopo do TP3 porque entradas válidas geram AST, entradas inválidas falham de
-forma clara, os principais pontos de recuperação estão implementados, as fases
-léxica e sintática funcionam em conjunto por meio da interface esperada de
-fluxo de tokens, a precedência se comporta corretamente no parsing de
-expressões, e o processo de build produz os artefatos usuais do parser com
+escopo do trabalho porque entradas válidas geram AST, entradas inválidas
+falham de forma clara, os principais pontos de recuperação estão implementados,
+as fases léxica e sintática funcionam em conjunto por meio da interface
+esperada de fluxo de tokens, a precedência se comporta corretamente no parsing
+de expressões, e o processo de build produz os artefatos usuais do parser com
 alvos de limpeza apropriados. O código também contém comentários explicativos
 nos pontos em que eles são mais úteis. Os arquivos de suporte e os esqueletos
 originais já trazem uma base considerável de comentários, e os trechos
