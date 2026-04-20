@@ -1,6 +1,4 @@
-README file for Programming Assignment 3 (C++ edition)
-======================================================
-
+README - Trabalho Prático 03 - Compiladores
 
 Este projeto implementa a etapa de análise sintática da linguagem Cool em C++,
 usando Bison e o pacote padrão de árvores da linguagem. A implementação
@@ -83,8 +81,24 @@ precedência e formato da árvore. O arquivo
 multiplicação. O arquivo
 `expr_precedence_dispatch_unary_assign_demo.cl` destaca atribuição, negação
 unária, `not`, `isvoid`, dispatch estático e dispatch dinâmico. Esses arquivos
-não substituem os testes principais, mas são úteis para leitura manual da AST e
-para verificação pontual da precedência.
+não substituem os testes principais, mas funcionam como validações rápidas e
+focadas. Eles são especialmente úteis quando o objetivo é inspecionar a AST de
+um aspecto isolado da gramática sem precisar percorrer toda a saída produzida
+por `good.cl`.
+
+A metodologia de testes foi organizada em duas frentes complementares. A
+primeira foi uma validação ampla, baseada na execução do pipeline completo sobre
+`good.cl` e `bad.cl`. Em `good.cl`, o objetivo foi verificar que a análise
+sintática aceitava corretamente um conjunto representativo de construções
+válidas e que a saída produzida era uma AST bem formada. Em `bad.cl`, o
+objetivo foi verificar que entradas inválidas geravam mensagens de erro
+consistentes e, ao mesmo tempo, exercitavam os pontos de recuperação
+implementados na gramática. A segunda frente foi uma validação rápida e
+dirigida com os arquivos menores de apoio. Esses exemplos foram usados para
+confirmar, de forma mais legível, o comportamento da precedência, dos
+parênteses, do `let`, dos operadores unários e das formas de dispatch,
+permitindo comparar diretamente a expressão de entrada com a forma da AST
+produzida.
 
 A validação foi feita por compilação e execução diretas. O parser e o lexer
 foram compilados com sucesso, entradas válidas produziram AST, entradas
